@@ -1,0 +1,22 @@
+diff --git a/node_modules/@uniswap/universal-router-sdk/dist/universal-router-sdk.cjs.development.js b/node_modules/@uniswap/universal-router-sdk/dist/universal-router-sdk.cjs.development.js
+index bea5d8a..8aeeb97 100644
+--- a/node_modules/@uniswap/universal-router-sdk/dist/universal-router-sdk.cjs.development.js
++++ b/node_modules/@uniswap/universal-router-sdk/dist/universal-router-sdk.cjs.development.js
+@@ -258,7 +258,16 @@ var CHAIN_CONFIGS = (_CHAIN_CONFIGS = {}, _CHAIN_CONFIGS[1] = {
+   router: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD',
+   weth: '0x4200000000000000000000000000000000000006',
+   creationBlock: 9107268
+-}, _CHAIN_CONFIGS[81457] = {
++}, _CHAIN_CONFIGS[17069] = {
++	router: '0x02b36A5aCa3e51d2E73926E3D3bB59C979B60C78',
++	weth: '0x4200000000000000000000000000000000000006',
++	creationBlock: 598982
++}, _CHAIN_CONFIGS[690] = {
++	router: '0xf92496316432e9EaCcAb99dDCcFd7e40A4d8fe46',
++	weth: '0x4200000000000000000000000000000000000006',
++	creationBlock: 929085
++},
++_CHAIN_CONFIGS[81457] = {
+   router: '0x643770E279d5D0733F21d6DC03A8efbABf3255B4',
+   weth: '0x4300000000000000000000000000000000000004',
+   creationBlock: 1116444

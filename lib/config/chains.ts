@@ -20,6 +20,8 @@ export const SUPPORTED_CHAINS = {
     ChainId.BASE_GOERLI,
     ChainId.BASE,
     ChainId.BLAST,
+    ChainId.REDSTONE_GARNET,
+    ChainId.REDSTONE,
   ],
   [RoutingType.DUTCH_LIMIT]: [ChainId.MAINNET, ChainId.POLYGON, ChainId.GOERLI],
   [RoutingType.RELAY]: [ChainId.MAINNET],
