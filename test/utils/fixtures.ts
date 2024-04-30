@@ -166,6 +166,17 @@ export const DL_REQUEST_BODY: QuoteRequestBodyJSON = {
   ],
 };
 
+export const V2_REQUEST_BODY: QuoteRequestBodyJSON = {
+  ...BASE_REQUEST_INFO_EXACT_IN,
+  configs: [
+    {
+      routingType: RoutingType.DUTCH_V2,
+      swapper: SWAPPER,
+      deadlineBufferSecs: 12,
+    },
+  ],
+};
+
 export function makeClassicRequest(overrides: Partial<QuoteRequestBodyJSON>): ClassicRequest {
   const requestInfo = Object.assign({}, BASE_REQUEST_INFO_EXACT_IN, overrides);
 
@@ -176,6 +187,7 @@ export function makeClassicRequest(overrides: Partial<QuoteRequestBodyJSON>): Cl
         routingType: RoutingType.CLASSIC,
         protocols: ['v3'],
         gasPriceWei: '12',
+        enableUniversalRouter: true
       },
     ],
   }).quoteRequests[0] as ClassicRequest;
@@ -656,6 +668,8 @@ export function createRouteBackToNativeQuote(overrides: Partial<ClassicQuoteData
   );
 }
 
+export const V2_QUOTE_EXACT_IN_BETTER = createDutchV2Quote({ amountOut: AMOUNT_BETTER }, 'EXACT_INPUT');
+export const V2_QUOTE_EXACT_IN_WORSE = createDutchV2Quote({ amountOut: AMOUNT }, 'EXACT_INPUT');
 export const DL_QUOTE_EXACT_IN_BETTER = createDutchQuote({ amountOut: AMOUNT_BETTER }, 'EXACT_INPUT');
 export const DL_QUOTE_EXACT_IN_BETTER_WITH_PORTION = createDutchQuote(
   { amountOut: AMOUNT_BETTER },

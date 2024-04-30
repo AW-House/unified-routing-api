@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import NodeCache from 'node-cache';
 import { ClassicQuote } from '../../../../lib/entities';
-import { GET_NO_PORTION_RESPONSE, GetPortionResponse, PortionFetcher } from '../../../../lib/fetchers/PortionFetcher';
+import { GetPortionResponse, GET_NO_PORTION_RESPONSE, PortionFetcher } from '../../../../lib/fetchers/PortionFetcher';
 import { RoutingApiQuoter } from '../../../../lib/providers/quoters';
 import axios from '../../../../lib/providers/quoters/helpers';
 import { PORTION_BIPS, PORTION_RECIPIENT } from '../../../constants';
@@ -12,7 +12,7 @@ import {
   makeClassicRequest,
   QUOTE_REQUEST_CLASSIC,
   QUOTE_REQUEST_CLASSIC_FE_ENABLE_FEE_ON_TRANSFER,
-  QUOTE_REQUEST_CLASSIC_FE_SEND_PORTION
+  QUOTE_REQUEST_CLASSIC_FE_SEND_PORTION,
 } from '../../../utils/fixtures';
 
 describe('RoutingApiQuoter', () => {
@@ -167,25 +167,50 @@ describe('RoutingApiQuoter', () => {
       expect(classicQuote.toJSON().route).toStrictEqual(CLASSIC_QUOTE_DATA_WITH_FOX_TAX.quote.route);
     });
 
-    it('quote with headers', async () => {
-      const request =  makeClassicRequest({});
-      request.headers = {'x-request-source': 'uniswap-ios'};
+    it('quote with x-request-source headers', async () => {
+      const request = makeClassicRequest({});
+      request.headers = { 'x-request-source': 'uniswap-ios' };
       axiosMock.mockResolvedValue({ data: CLASSIC_QUOTE_DATA.quote });
       const response = await routingApiQuoter.quote(request);
       expect(response).toBeDefined();
       expect(response).toBeInstanceOf(ClassicQuote);
 
-      expect(axiosMock).toHaveBeenCalledWith(
-        expect.any(String),
-        { headers: expect.objectContaining({'x-request-source': 'uniswap-ios'})}
-      )
+      expect(axiosMock).toHaveBeenCalledWith(expect.any(String), {
+        headers: expect.objectContaining({ 'x-request-source': 'uniswap-ios' }),
+      });
+    });
+
+    it('quote with x-request-source and x-app-version headers', async () => {
+      const request = makeClassicRequest({});
+      request.headers = { 'x-request-source': 'uniswap-ios', 'x-app-version': '1.27' };
+      axiosMock.mockResolvedValue({ data: CLASSIC_QUOTE_DATA.quote });
+      const response = await routingApiQuoter.quote(request);
+      expect(response).toBeDefined();
+      expect(response).toBeInstanceOf(ClassicQuote);
+
+      expect(axiosMock).toHaveBeenCalledWith(expect.any(String), {
+        headers: expect.objectContaining({ 'x-request-source': 'uniswap-ios', 'x-app-version': '1.27' }),
+      });
+    });
+
+    it('quote with x-request-source, x-app-version and aws-timestamp headers, ignores aws header', async () => {
+      const request = makeClassicRequest({});
+      request.headers = { 'x-request-source': 'uniswap-ios', 'x-app-version': '1.27', 'aws-timestamp': '12345678' };
+      axiosMock.mockResolvedValue({ data: CLASSIC_QUOTE_DATA.quote });
+      const response = await routingApiQuoter.quote(request);
+      expect(response).toBeDefined();
+      expect(response).toBeInstanceOf(ClassicQuote);
+
+      expect(axiosMock).toHaveBeenCalledWith(expect.any(String), {
+        headers: { 'x-api-key': 'test-key', 'x-request-source': 'uniswap-ios', 'x-app-version': '1.27' },
+      });
     });
   });
 
   describe('buildRequest', () => {
     it('properly builds query string', async () => {
       expect(await routingApiQuoter.buildRequest(QUOTE_REQUEST_CLASSIC)).toEqual(
-        'https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5'
+        'https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5&enableUniversalRouter=true'
       );
     });
 
@@ -193,7 +218,7 @@ describe('RoutingApiQuoter', () => {
       process.env.ENABLE_PORTION = 'true';
 
       expect(routingApiQuoter.buildRequest(QUOTE_REQUEST_CLASSIC_FE_SEND_PORTION)).toEqual(
-        `https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5&portionBips=${PORTION_BIPS}&portionRecipient=${PORTION_RECIPIENT}`
+        `https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5&enableUniversalRouter=true&portionBips=${PORTION_BIPS}&portionRecipient=${PORTION_RECIPIENT}`
       );
     });
 
@@ -201,7 +226,7 @@ describe('RoutingApiQuoter', () => {
       process.env.ENABLE_PORTION = 'false';
 
       expect(routingApiQuoter.buildRequest(QUOTE_REQUEST_CLASSIC_FE_SEND_PORTION)).toEqual(
-        `https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5`
+        `https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5&enableUniversalRouter=true`
       );
     });
 
@@ -209,7 +234,7 @@ describe('RoutingApiQuoter', () => {
       process.env.ENABLE_PORTION = 'true';
 
       expect(routingApiQuoter.buildRequest(QUOTE_REQUEST_CLASSIC)).toEqual(
-        `https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5`
+        'https://api.uniswap.org/quote?tokenInAddress=0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984&tokenInChainId=1&tokenOutAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&tokenOutChainId=1&amount=1000000000000000000&type=exactIn&protocols=v3&gasPriceWei=12&slippageTolerance=0.5&enableUniversalRouter=true'
       );
     });
   });

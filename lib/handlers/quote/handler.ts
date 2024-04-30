@@ -10,6 +10,7 @@ import {
   ClassicQuote,
   DutchQuote,
   DutchQuoteType,
+  DutchV2Quote,
   parseQuoteContexts,
   parseQuoteRequests,
   Quote,
@@ -154,7 +155,10 @@ export class QuoteHandler extends APIGLambdaHandler<
     );
     log.info({ resolvedQuotes }, 'resolvedQuotes');
 
-    const uniswapXRequested = requests.filter((request) => request.routingType === RoutingType.DUTCH_LIMIT).length > 0;
+    const uniswapXRequested =
+      requests.filter(
+        (request) => request.routingType === RoutingType.DUTCH_LIMIT || request.routingType === RoutingType.DUTCH_V2
+      ).length > 0;
     const resolvedValidQuotes = resolvedQuotes.filter((q) => q !== null) as Quote[];
     const bestQuote = await getBestQuote(resolvedValidQuotes, uniswapXRequested);
     if (!bestQuote) {
@@ -491,6 +495,8 @@ const getQuotedAmount = (quote: Quote, tradeType: TradeType) => {
       return (quote as ClassicQuote).amountOutGasAndPortionAdjusted;
     } else if (quote.routingType === RoutingType.DUTCH_LIMIT) {
       return (quote as DutchQuote).amountOutGasAndPortionAdjusted;
+    } else if (quote.routingType === RoutingType.DUTCH_V2) {
+      return (quote as DutchV2Quote).amountOutGasAndPortionAdjusted;
     } else if (quote.routingType === RoutingType.RELAY) {
       return (quote as RelayQuote).classicQuote.amountOutGasAndPortionAdjusted;
     }
@@ -500,6 +506,8 @@ const getQuotedAmount = (quote: Quote, tradeType: TradeType) => {
       return (quote as ClassicQuote).amountInGasAndPortionAdjusted;
     } else if (quote.routingType === RoutingType.DUTCH_LIMIT) {
       return (quote as DutchQuote).amountInGasAndPortionAdjusted;
+    } else if (quote.routingType === RoutingType.DUTCH_V2) {
+      return (quote as DutchV2Quote).amountInGasAndPortionAdjusted;
     } else if (quote.routingType === RoutingType.RELAY) {
       return (quote as RelayQuote).classicQuote.amountInGasAndPortionAdjusted;
     }
